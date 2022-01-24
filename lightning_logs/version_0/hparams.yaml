@@ -1,0 +1,9 @@
+L: 3
+d_model: 32
+dropout: 0.1
+feature_dim: 1156
+lr: 0.01
+neg_num: 5
+type_num: 5
+use_feature: false
+wd: 0.0001
