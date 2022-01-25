@@ -42,7 +42,7 @@ class LinkPredictionDataloader(pl.LightningDataModule):
         self.train_dataset = TensorDataset(self.edge_index.T[mask],self.edge_type[mask],self.edge_id[mask])
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return DataLoader(self.train_dataset,self.batch_size,shuffle=True,num_workers=self.num_workers)
+        return DataLoader(self.train_dataset,self.batch_size,shuffle=True,num_workers=self.num_workers,drop_last=True)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return DataLoader(self.test_dataset,batch_size=len(self.test_dataset))

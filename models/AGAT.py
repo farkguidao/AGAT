@@ -65,6 +65,9 @@ class AGATLayer(nn.Module):
         :param mask:
         :return:
         '''
+        E = edge_type.shape[0]
+        et=edge_feature.shape[0]
+        T,N,d= x.shape
         theta_g, theta_hi, theta_hj, wr, we = self.theta_g,self.theta_hi,self.theta_hj,self.wr,self.we
         row, col = edge_index[0], edge_index[1]
         # 计算r_g分量
@@ -79,9 +82,15 @@ class AGATLayer(nn.Module):
             pass
         r = scatter_softmax(r, row, dim=-1)  # t,E
         edge_feature = edge_feature @ wr  # et,d_model
-        v_g = torch.sigmoid(edge_feature).index_select(0, edge_type).unsqueeze(0)  # 1,E,d_model
-        v_h = (x @ we).index_select(1, col)
-        out = r.unsqueeze(-1) * v_g * v_h
+        if E>10*et*N:
+            v_g = torch.sigmoid(edge_feature).view(1,et,1,d)
+            v_h = (x @ we).view(T,1,N,d)
+            v = (v_g*v_h)[:,edge_type,col] #T,E,d
+        else:
+            v_g = torch.sigmoid(edge_feature).index_select(0, edge_type).unsqueeze(0)  # 1,E,d_model
+            v_h = (x @ we).index_select(1, col)
+            v = v_g*v_h
+        out = r.unsqueeze(-1) * v
         out = scatter_add(out, row, dim=-2)  # t,N,d_model
         return out, edge_feature
 

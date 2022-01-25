@@ -97,13 +97,13 @@ if __name__ == '__main__':
     # has_feature = True
     # is_dir = False
 
-    base_path = '../data/youtube'
-    node_num = 2000
-    has_feature = False
-    is_dir = False
-
-    # base_path = '../data/twitter'
-    # node_num = 10000
+    # base_path = '../data/youtube'
+    # node_num = 2000
     # has_feature = False
-    # is_dir = True
+    # is_dir = False
+
+    base_path = '../data/twitter'
+    node_num = 10000
+    has_feature = False
+    is_dir = True
     do(base_path,node_num,has_feature,is_dir)

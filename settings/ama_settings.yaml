@@ -8,7 +8,7 @@ model:
 #  use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd
   use_feature: True
   feature_dim: 1156
-  d_model: 32
+  d_model: 128
   type_num: 2
   L: 3
   use_gradient_checkpointing: False
@@ -23,4 +23,3 @@ train:
   max_epochs: 100
   gpus: 1
 #  reload_dataloaders_every_n_epochs: 1
-#  resume_from_checkpoint: 'lightning_logs/version_0/checkpoints/epoch=96-step=6789.ckpt'
