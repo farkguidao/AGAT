@@ -29,13 +29,14 @@ class AGAT(nn.Module):
         x = x.expand(self.type_num,N,d)
 
         for i in range(self.L):
+            x_ = x
             if self.use_gradient_checkpointing:
                 x, edge_feature = checkpoint(self.layer_list[i],x,edge_index,edge_type,edge_feature,mask)
             else:
                 x, edge_feature = self.layer_list[i](x,edge_index,edge_type,edge_feature,mask)
             if i == self.L-1:
                 break
-            x = self.dropout[i](self.relu(x))
+            x = self.relu(x_+self.dropout[i](x))
             edge_feature = self.relu(edge_feature)
 
         return x
