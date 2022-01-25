@@ -11,7 +11,7 @@ from models.AGAT import AGAT
 
 
 class LinkPredictionTask(pl.LightningModule):
-    def __init__(self,edge_index,edge_type,feature,N,use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd):
+    def __init__(self,edge_index,edge_type,feature,N,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
         super(LinkPredictionTask, self).__init__()
         # 工程类组件
         self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N'])
@@ -22,8 +22,8 @@ class LinkPredictionTask(pl.LightningModule):
             self.register_buffer('feature',feature)
             self.fc_node = nn.Linear(feature_dim, d_model)
         else:
-            self.feature = nn.Parameter(torch.FloatTensor(N,d_model))
-            nn.init.xavier_uniform_(self.feature)
+            self.feature = nn.Parameter(torch.randn(N,d_model))
+            # nn.init.xavier_uniform_(self.feature)
         self.loss2 = nn.CrossEntropyLoss()
         self.loss1 = NCELoss(N)
         self.val_best_auc = 0
@@ -35,7 +35,7 @@ class LinkPredictionTask(pl.LightningModule):
         self.fc_edge = nn.Linear(type_num+1,d_model)
         self.w = nn.Parameter(torch.FloatTensor(N,d_model))
         nn.init.xavier_uniform_(self.w)
-        self.agat = AGAT(type_num,d_model,L,dropout)
+        self.agat = AGAT(type_num,d_model,L,use_gradient_checkpointing,dropout)
 
     def get_em(self,mask=None):
         if self.hparams.use_feature:
@@ -118,6 +118,7 @@ class NCELoss(nn.Module):
         target = weights[torch.cat([labels,neg_batch],dim=0)]
         label = torch.zeros(target.shape[0],device=inputs.device)
         label[:labels.shape[0]]=1
+        # bs,d_model-> bs*(neg_num+1),d_model
         source = inputs.repeat((neg_num+1,1))
         return self.bce((source*target).sum(dim=-1),label)
 

@@ -8,9 +8,10 @@ model:
 #  use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd
   use_feature: False
   feature_dim: 1156
-  d_model: 32
+  d_model: 16
   type_num: 5
   L: 3
+  use_gradient_checkpointing: True
   neg_num: 5
   lr: 0.01
   wd: 0.0001

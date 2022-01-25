@@ -11,6 +11,7 @@ model:
   d_model: 32
   type_num: 2
   L: 3
+  use_gradient_checkpointing: False
   neg_num: 5
   lr: 0.01
   wd: 0.0001
@@ -19,7 +20,7 @@ callback:
   monitor: 'val_auc'
   mode: 'max'
 train:
-  max_epochs: 2
+  max_epochs: 100
   gpus: 1
 #  reload_dataloaders_every_n_epochs: 1
 #  resume_from_checkpoint: 'lightning_logs/version_0/checkpoints/epoch=96-step=6789.ckpt'
