@@ -47,7 +47,7 @@ def test(parser):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--setting_path',type=str,default='settings/ama_settings.yaml')
+    parser.add_argument('--setting_path',type=str,default='settings/yot_settings.yaml')
     parser.add_argument("--test", action='store_true', help='test or train')
     temp_args, _ = parser.parse_known_args()
     if temp_args.test:
