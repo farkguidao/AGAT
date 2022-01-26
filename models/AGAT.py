@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import nn
 from torch_scatter import scatter_softmax, scatter_add
@@ -36,11 +37,10 @@ class AGAT(nn.Module):
                 x, edge_feature = self.layer_list[i](x,edge_index,edge_type,edge_feature,mask)
             if i == self.L-1:
                 break
-            x = self.relu(x_+self.dropout[i](x))
+            x = x_+self.relu(self.dropout[i](x))
             edge_feature = self.relu(edge_feature)
 
         return x
-
 
 class AGATLayer(nn.Module):
     def __init__(self,type_num,d_model):
@@ -80,6 +80,7 @@ class AGATLayer(nn.Module):
         # h = x.index_select(1,col) # t,E,d
         # r = (torch.cat([path,h],dim=-1) * theta.unsqueeze(1)).sum(-1) #t,E
         if mask is not None:
+            r = r.index_fill(1,mask,-np.inf)
             pass
         r = scatter_softmax(r, row, dim=-1)  # t,E
         edge_feature = edge_feature @ wr  # et,d_model

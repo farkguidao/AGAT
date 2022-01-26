@@ -48,7 +48,7 @@ class LinkPredictionTask(pl.LightningModule):
 
     def training_step(self, batch,*args, **kwargs) -> STEP_OUTPUT:
         pos_edge,pos_edge_type,edge_id = batch
-        em = self.get_em() #type_num,N,d_model
+        em = self.get_em(mask=edge_id) #type_num,N,d_model
         source = pos_edge[:,0]
         target = pos_edge[:,1]
         l1 = self.loss1(inputs=em[pos_edge_type-1,source],weights=self.w,labels=target,neg_num=self.hparams.neg_num)
