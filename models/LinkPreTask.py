@@ -11,10 +11,10 @@ from models.AGAT import AGAT
 
 
 class LinkPredictionTask(pl.LightningModule):
-    def __init__(self,edge_index,edge_type,feature,N,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
+    def __init__(self,edge_index,edge_type,feature,N,degree,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
         super(LinkPredictionTask, self).__init__()
         # 工程类组件
-        self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N'])
+        self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N','degree'])
         self.register_buffer('edge_index',edge_index)
         self.register_buffer('edge_type',edge_type)
         self.register_buffer('edge_feature',torch.eye(type_num+1))
@@ -25,7 +25,7 @@ class LinkPredictionTask(pl.LightningModule):
             self.feature = nn.Parameter(torch.randn(N,d_model))
             # nn.init.xavier_uniform_(self.feature)
         self.loss2 = nn.CrossEntropyLoss()
-        self.loss1 = NCELoss(N)
+        self.loss1 = NCELoss(N,degree)
         self.val_best_auc = 0
         self.val_best_aupr = 0
         self.test_best_auc = 0
@@ -108,13 +108,15 @@ class LinkPredictionTask(pl.LightningModule):
         return optimizer
 
 class NCELoss(nn.Module):
-    def __init__(self,N):
+    def __init__(self,N,degree):
         super(NCELoss, self).__init__()
         self.N = N
+        self.register_buffer('degree',degree)
         self.bce=nn.BCEWithLogitsLoss()
     def forward(self,inputs,weights,labels,neg_num):
-        neg_batch = torch.randint(0, self.N, (neg_num*inputs.shape[0],),
-                                  dtype=torch.long,device=inputs.device)
+        # neg_batch = torch.randint(0, self.N, (neg_num*inputs.shape[0],),
+        #                           dtype=torch.long,device=inputs.device)
+        neg_batch = torch.multinomial(self.degree,neg_num*inputs.shape[0],True)
         target = weights[torch.cat([labels,neg_batch],dim=0)]
         label = torch.zeros(target.shape[0],device=inputs.device)
         label[:labels.shape[0]]=1

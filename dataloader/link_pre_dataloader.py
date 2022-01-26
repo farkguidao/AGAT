@@ -40,7 +40,8 @@ class LinkPredictionDataloader(pl.LightningDataModule):
         # mask除去自环
         mask = self.edge_type>0
         self.train_dataset = TensorDataset(self.edge_index.T[mask],self.edge_type[mask],self.edge_id[mask])
-
+        adj = torch.sparse_coo_tensor(self.edge_index, torch.ones(self.E)).coalesce()
+        self.degree = torch.sparse.sum(adj, 0).to_dense()
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(self.train_dataset,self.batch_size,shuffle=True,num_workers=self.num_workers,drop_last=True)
 

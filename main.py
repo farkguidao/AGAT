@@ -13,7 +13,7 @@ def get_trainer_model_dataloader_from_yaml(yaml_path):
         settings = dict(yaml.load(f,yaml.FullLoader))
 
     dl = LinkPredictionDataloader(**settings['data'])
-    model = LinkPredictionTask(dl.edge_index,dl.edge_type,dl.feature_data,dl.N, **settings['model'])
+    model = LinkPredictionTask(dl.edge_index,dl.edge_type,dl.feature_data,dl.N,dl.degree, **settings['model'])
     checkpoint_callback = pl.callbacks.ModelCheckpoint(**settings['callback'])
     trainer = pl.Trainer(callbacks=[checkpoint_callback], **settings['train'])
     return trainer,model,dl
