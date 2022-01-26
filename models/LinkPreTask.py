@@ -11,7 +11,7 @@ from models.AGAT import AGAT
 
 
 class LinkPredictionTask(pl.LightningModule):
-    def __init__(self,edge_index,edge_type,feature,N,degree,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
+    def __init__(self,edge_index,edge_type,feature,N,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
         super(LinkPredictionTask, self).__init__()
         # 工程类组件
         self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N','degree'])
@@ -25,11 +25,13 @@ class LinkPredictionTask(pl.LightningModule):
             self.feature = nn.Parameter(torch.randn(N,d_model))
             # nn.init.xavier_uniform_(self.feature)
         self.loss2 = nn.CrossEntropyLoss()
-        self.loss1 = NCELoss(N,degree)
+        self.loss1 = NCELoss(N)
         self.val_best_auc = 0
         self.val_best_aupr = 0
+        self.val_best_f1 = 0
         self.test_best_auc = 0
         self.test_best_aupr = 0
+        self.test_best_f1 = 0
         #
 
         self.fc_edge = nn.Linear(type_num+1,d_model)
@@ -70,11 +72,14 @@ class LinkPredictionTask(pl.LightningModule):
         score = torch.sigmoid(score)
         auc = torchmetrics.functional.auroc(score, label, pos_label=1)
         aupr = torchmetrics.functional.average_precision(score, label, pos_label=1)
+        f1 = torchmetrics.functional.f1(score,label)
         if auc > self.val_best_auc:
             self.val_best_auc = auc
             self.val_best_aupr = aupr
+            self.val_best_f1 = f1
         self.log('val_auc', auc, prog_bar=True)
         self.log('val_aupr', aupr, prog_bar=True)
+        self.log('val_f1', f1, prog_bar=True)
 
     def test_step(self, batch,*args, **kwargs) -> Optional[STEP_OUTPUT]:
         em = self.get_em()
@@ -84,18 +89,21 @@ class LinkPredictionTask(pl.LightningModule):
         score = torch.sigmoid(score)
         auc = torchmetrics.functional.auroc(score, label, pos_label=1)
         aupr = torchmetrics.functional.average_precision(score, label, pos_label=1)
+        f1 = torchmetrics.functional.f1(score, label)
         if auc > self.test_best_auc:
             self.test_best_auc = auc
             self.test_best_aupr = aupr
+            self.test_best_f1 = f1
+
     def on_test_end(self) -> None:
         with open(self.trainer.log_dir + '/best_result.txt', mode='w') as f:
-            result = {'auc': float(self.test_best_auc), 'aupr': float(self.test_best_aupr)}
+            result = {'auc': float(self.test_best_auc), 'aupr': float(self.test_best_aupr),'f1': float(self.test_best_f1)}
             print('test_result:', result)
             f.write(str(result))
-    # 结束时存储最优结果
+    # 结束时存储最优验证结果
     def on_fit_end(self) -> None:
         with open(self.trainer.log_dir + '/val_best_result.txt', mode='w') as f:
-            result = {'auc': float(self.val_best_auc), 'aupr': float(self.val_best_aupr)}
+            result = {'auc': float(self.val_best_auc), 'aupr': float(self.val_best_aupr),'f1':float(self.val_best_f1)}
             print('val_best_result:', result)
             f.write(str(result))
 
@@ -108,15 +116,13 @@ class LinkPredictionTask(pl.LightningModule):
         return optimizer
 
 class NCELoss(nn.Module):
-    def __init__(self,N,degree):
+    def __init__(self,N):
         super(NCELoss, self).__init__()
         self.N = N
-        self.register_buffer('degree',degree)
         self.bce=nn.BCEWithLogitsLoss()
     def forward(self,inputs,weights,labels,neg_num):
-        # neg_batch = torch.randint(0, self.N, (neg_num*inputs.shape[0],),
-        #                           dtype=torch.long,device=inputs.device)
-        neg_batch = torch.multinomial(self.degree,neg_num*inputs.shape[0],True)
+        neg_batch = torch.randint(0, self.N, (neg_num*inputs.shape[0],),
+                                  dtype=torch.long,device=inputs.device)
         target = weights[torch.cat([labels,neg_batch],dim=0)]
         label = torch.zeros(target.shape[0],device=inputs.device)
         label[:labels.shape[0]]=1
