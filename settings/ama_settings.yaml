@@ -6,14 +6,15 @@ data:
   num_workers: 0
 model:
 #  use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd
+  aggregator: 'agat'
   use_feature: True
   feature_dim: 1156
   d_model: 64
   type_num: 2
-  L: 4
+  L: 6
   use_gradient_checkpointing: False
-  neg_num: 4
-  lr: 0.01
+  neg_num: 1
+  lr: 0.005
   wd: 0.000
   dropout: 0.1
 callback:

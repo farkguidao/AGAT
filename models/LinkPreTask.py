@@ -11,7 +11,7 @@ from models.AGAT import AGAT
 
 
 class LinkPredictionTask(pl.LightningModule):
-    def __init__(self,edge_index,edge_type,feature,N,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
+    def __init__(self,edge_index,edge_type,feature,N,aggregator,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
         super(LinkPredictionTask, self).__init__()
         # 工程类组件
         self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N','degree'])
@@ -37,15 +37,21 @@ class LinkPredictionTask(pl.LightningModule):
         self.fc_edge = nn.Linear(type_num+1,d_model)
         self.w = nn.Parameter(torch.FloatTensor(N,d_model))
         nn.init.xavier_uniform_(self.w)
-        self.agat = AGAT(type_num,d_model,L,use_gradient_checkpointing,dropout)
-
+        if aggregator=='agat':
+            self.agat = AGAT(type_num,d_model,L,use_gradient_checkpointing,dropout)
+        elif aggregator=='sgat':
+            self.sgat = AGAT(1,d_model,L,use_gradient_checkpointing,dropout)
     def get_em(self,mask=None):
         if self.hparams.use_feature:
             feature = self.fc_node(self.feature)
         else:
             feature = self.feature
         edge_feature = self.fc_edge(self.edge_feature)
-        em = self.agat(feature,self.edge_index,self.edge_type,edge_feature,mask)
+        if self.hparams.aggregator=='agat':
+            em = self.agat(feature,self.edge_index,self.edge_type,edge_feature,mask)
+        elif self.hparams.aggregator=='sgat':
+            em = self.sgat(feature,self.edge_index,self.edge_type,edge_feature,mask)\
+                .expand(self.hparams.type_num,feature.shape[0],self.hparams.d_model)
         return em
 
     def training_step(self, batch,*args, **kwargs) -> STEP_OUTPUT:
@@ -54,15 +60,18 @@ class LinkPredictionTask(pl.LightningModule):
         source = pos_edge[:,0]
         target = pos_edge[:,1]
         l1 = self.loss1(inputs=em[pos_edge_type-1,source],weights=self.w,labels=target,neg_num=self.hparams.neg_num)
+        self.log('loss1', l1, prog_bar=True)
+        loss=l1
         # em[:,source] #t,bs,d
         # self.w[target].unsqueeze(0) #1, bs,d
         # (em[:, source] * self.w[target].unsqueeze(0)).sum(-1) #t,bs
-        logits = (em[:, source] * self.w[target].unsqueeze(0)).sum(-1).T # bs,t
-        l2 = self.loss2(logits,pos_edge_type-1)
-        self.log('loss1', l1, prog_bar=True)
-        self.log('loss2', l2, prog_bar=True)
-        self.log('loss_all', l1+l2, prog_bar=True)
-        return l1+l2
+        if self.hparams.aggregator=='agat':
+            logits = (em[:, source] * self.w[target].unsqueeze(0)).sum(-1).T # bs,t
+            l2 = self.loss2(logits,pos_edge_type-1)
+            self.log('loss2', l2, prog_bar=True)
+            self.log('loss_all', l1+l2, prog_bar=True)
+            loss = loss+l2
+        return loss
 
     def validation_step(self, batch,*args, **kwargs) -> Optional[STEP_OUTPUT]:
         em = self.get_em()

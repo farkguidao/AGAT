@@ -3,16 +3,17 @@ data:
   batch_size: 16384
   datapath: 'data/youtube/all_data.pkl'
   is_dir: False
-  num_workers: 0
+  num_workers: 8
 model:
 #  use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd
+  aggregator: 'agat'
   use_feature: False
   feature_dim: 1156
   d_model: 32
   type_num: 5
-  L: 3
+  L: 6
   use_gradient_checkpointing: True
-  neg_num: 5
+  neg_num: 1
   lr: 0.01
   wd: 0.0001
   dropout: 0.1
