@@ -3,17 +3,26 @@ import os
 import torch
 
 from dataloader.link_pre_dataloader import LinkPredictionDataloader
+from dataloader.node_cla_dataloader import NodeClassificationDataloader
 from models.LinkPreTask import LinkPredictionTask
+from models.NodeCLTask import NodeClassificationTask
 import pytorch_lightning as pl
 import yaml
 import argparse
+
+TASK = {
+    'link_pre':(LinkPredictionDataloader,LinkPredictionTask),
+    'simi_node_CL':(NodeClassificationDataloader,NodeClassificationTask)
+}
 
 def get_trainer_model_dataloader_from_yaml(yaml_path):
     with open(yaml_path) as f:
         settings = dict(yaml.load(f,yaml.FullLoader))
 
-    dl = LinkPredictionDataloader(**settings['data'])
-    model = LinkPredictionTask(dl.edge_index,dl.edge_type,dl.feature_data,dl.N, **settings['model'])
+    DATALOADER,MODEL=TASK[settings['task']]
+
+    dl = DATALOADER(**settings['data'])
+    model = MODEL(dl.edge_index,dl.edge_type,dl.feature_data,dl.N, **settings['model'])
     checkpoint_callback = pl.callbacks.ModelCheckpoint(**settings['callback'])
     trainer = pl.Trainer(callbacks=[checkpoint_callback], **settings['train'])
     return trainer,model,dl
@@ -47,7 +56,7 @@ def test(parser):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--setting_path',type=str,default='settings/yot_settings.yaml')
+    parser.add_argument('--setting_path',type=str,default='settings/pub_settings.yaml')
     parser.add_argument("--test", action='store_true', help='test or train')
     temp_args, _ = parser.parse_known_args()
     if temp_args.test:
