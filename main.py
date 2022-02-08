@@ -3,8 +3,10 @@ import os
 import torch
 
 from dataloader.link_pre_dataloader import LinkPredictionDataloader
+from dataloader.link_rank_dataloader import LinkRankDataloader
 from dataloader.node_cla_dataloader import NodeClassificationDataloader
 from models.LinkPreTask import LinkPredictionTask
+from models.LinkRankTask import LinkRankTask
 from models.NodeCLTask import NodeClassificationTask
 import pytorch_lightning as pl
 import yaml
@@ -12,6 +14,7 @@ import argparse
 
 TASK = {
     'link_pre':(LinkPredictionDataloader,LinkPredictionTask),
+    'link_rank':(LinkRankDataloader,LinkRankTask),
     'simi_node_CL':(NodeClassificationDataloader,NodeClassificationTask)
 }
 
@@ -56,7 +59,7 @@ def test(parser):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--setting_path',type=str,default='settings/pub_settings.yaml')
+    parser.add_argument('--setting_path',type=str,default='settings/wn_settings.yaml')
     parser.add_argument("--test", action='store_true', help='test or train')
     temp_args, _ = parser.parse_known_args()
     if temp_args.test:

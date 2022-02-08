@@ -5,11 +5,10 @@ from torch.utils.data import TensorDataset, DataLoader
 from utils.sparse_utils import *
 from torch_sparse import coalesce
 class LinkPredictionDataloader(pl.LightningDataModule):
-    def __init__(self,datapath,batch_size,is_dir=False,num_workers=0):
+    def __init__(self,datapath,batch_size,num_workers=0):
         super(LinkPredictionDataloader, self).__init__()
         self.datapath = datapath
         self.batch_size = batch_size
-        self.is_dir = is_dir
         self.num_workers = num_workers
         self.read_data()
     def read_data(self):
