@@ -9,18 +9,19 @@ model:
   aggregator: 'agat'
   use_feature: False
   feature_dim: 1156
-  d_model: 32
+  d_model: 64
 #  reverse
   type_num: 22
-  neg_num: 1
+  neg_num: 10
   L: 3
   use_gradient_checkpointing: True
-  lr: 0.001
-  wd: 0.00
+  lr: 0.005
+  wd: 0.000
   dropout: 0.1
 callback:
   monitor: 'mrr'
   mode: 'max'
 train:
-  max_epochs: 50
+  max_epochs: 200
   gpus: 1
+  precision: 16

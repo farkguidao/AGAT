@@ -1,25 +1,23 @@
 task: 'simi_node_CL'
 data:
-#  datapath,batch_size,is_dir=False,num_workers=0
-  batch_size: 16
+  batch_size: 32
   datapath: 'data/PubMed/all_data.pkl'
   num_workers: 0
 model:
-#  use_feature,feature_dim,d_model,type_num, L,neg_num,dropout,lr,wd
   aggregator: 'agat'
-  use_feature: False
+  use_feature: True
   feature_dim: 200
-  d_model: 32
+  d_model: 64
   type_num: 8
   L: 3
   use_gradient_checkpointing: True
-  lr: 0.01
-  wd: 0.005
+  lr: 0.005
+  wd: 0.000
   dropout: 0.1
 callback:
   monitor: 'micro-f1'
   mode: 'max'
 train:
-  max_epochs: 50
+  max_epochs: 100
   gpus: 1
 #  reload_dataloaders_every_n_epochs: 1

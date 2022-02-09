@@ -26,12 +26,12 @@ class LinkRankTask(LinkPredictionTask):
                         neg_num=self.hparams.neg_num)
         self.log('loss1', l1, prog_bar=True)
         loss = l1
-        if self.hparams.aggregator == 'agat':
-            logits = (em[:, source] * self.w[target].unsqueeze(0)).sum(-1).T  # bs,t
-            l2 = self.loss2(logits, pos_edge_type)
-            self.log('loss2', l2, prog_bar=True)
-            self.log('loss_all', l1 + l2, prog_bar=True)
-            loss = loss + l2
+        # if self.hparams.aggregator == 'agat':
+        #     logits = (em[:, source] * self.w[target].unsqueeze(0)).sum(-1).T  # bs,t
+        #     l2 = self.loss2(logits, pos_edge_type)
+        #     self.log('loss2', l2, prog_bar=True)
+        #     self.log('loss_all', l1 + l2, prog_bar=True)
+        #     loss = loss + l2
         return loss
 
     def evalute(self,obj,pred,label):
@@ -44,9 +44,14 @@ class LinkRankTask(LinkPredictionTask):
         results={}
         b_range = torch.arange(pred.size()[0], device=self.device)
         target_pred = pred[b_range, obj]
-        pred = torch.where(label.byte(), -torch.ones_like(pred) * 10000000, pred)
+        pred[label] = -np.inf
+        # torch.where(label.byte(), -torch.ones_like(pred) * 10000000, pred)
         pred[b_range, obj] = target_pred
-        ranks = 1 + torch.argsort(torch.argsort(pred, dim=1, descending=True), dim=1, descending=False)[b_range, obj]
+        pred = torch.argsort(pred, dim=1, descending=True)
+        ranks = 1+torch.argmax((pred==obj.unsqueeze(-1)).byte(),dim=1)
+        # pred = torch.argsort(pred, dim=1, descending=False)
+        # ranks = 1 + pred[b_range, obj]
+        del pred
         ranks = ranks.float()
         results['count'] = torch.numel(ranks)
         results['mr'] = torch.sum(ranks).item()
@@ -89,7 +94,10 @@ class LinkRankTask(LinkPredictionTask):
         head,rel,tail = triple[:,0],triple[:,1],triple[:,2]
         em = self.get_em()
         pred = em[rel,head] @ self.w.T #bs*2,N
-
+        # pred = []
+        # for i in range(bs*2):
+        #     pred.append((em[rel[i]]*self.w[head[i]]).sum(-1))
+        # pred = torch.stack(pred)
         left_reslut =   self.evalute(tail[:bs],pred[:bs],label[:bs])
         right_reslut =   self.evalute(tail[bs:],pred[bs:],label[bs:])
         result = self.get_combined_results(left_reslut,right_reslut)
@@ -100,6 +108,7 @@ class LinkRankTask(LinkPredictionTask):
         if self.val_result['mrr']<result['mrr']:
             self.val_result = result
         self.log_dict(result)
+        self.log('-mrr',result['mrr'],prog_bar=True)
 
 
     def test_step(self, batch, *args, **kwargs) -> Optional[STEP_OUTPUT]:
