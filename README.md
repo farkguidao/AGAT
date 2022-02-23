@@ -1,6 +1,6 @@
 # AGAT
 
-Source code for paper "M2GCN: Multi-Modal Graph Convolutional Network for Polypharmacy Side Effects Discovery"
+Source code for paper "Aspect-Aware Graph Attention Network for Heterogeneous Information Networks"
 
 ## Requirements
 
@@ -91,7 +91,7 @@ python main.py --test --setting_path yourpath.yaml --ckpt_path yourpath.ckpt
 
 PS: Keep the configuration file unchanged during training and testing.
 
-### Sime Node Classification Task
+### Semi-supervised Classification Task
 
 training and testing are similar to the Link Prediction Task.
 
