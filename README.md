@@ -38,17 +38,26 @@ sh do_unzip.sh
 
 ## Basic usage
 
-### Train AGAT
+### Link Prediction Task
 
-train M2GCN by
+**train AGAT by**
 
 ```
-python main.py
+# train AGAT .
+python main.py --setting_path *.yaml
+
+#  for example
+#  youtube
+python main.py --setting_path lightning_logs/youtube_best/yot_settings.yaml
+# amazon
+python main.py --setting_path lightning_logs/amazon_best/ama_settings.yaml
+# twitter
+python main.py --setting_path lightning_logs/twitter_best/tiw_settings.yaml
+
 ```
+The `*.yaml` is the  configuration file.
 
-The default configuration file is `setting/settings.yaml`.
-
-And if you want to adjust the hyperparameters of the model, you can modify it in `.setting/settings.yaml`, or create a similar configuration file, and specify `--setting_path` like this:
+And if you want to adjust the hyperparameters of the model, you can modify it in `*.yaml`, or create a similar configuration file, and specify `--setting_path` like this:
 
 ```
 python main.py --setting_path yourpath.yaml
@@ -58,24 +67,49 @@ Checkpoints, logs, and results during training will be stored in the directory: 
 
 And you can run `tensorboard --logdir lightning_logs/version_0` to monitor the training progress.
 
-### Link Prediction with pre-trained model
-
-You can predict the interaction between drugs through the pre-trained model we provide.
-
-**Since git limits the size of a single file upload (<25M), we divide the pre-trained model into multiple volumes. Please unzip the files in the directory `./lightning_logs/pre-trained/checkpoints/` first.**
-
-Load the pre-trained model and predict the test dataset by:
+**Load the pre-trained model and predict the test dataset by:**
 
 ```
-python main.py --test --ckpt_path ./lightning_logs/pre-trained/checkpoints/pre-trained.ckpt
+# test 
+python main.py --test --setting_path *.yaml --ckpt_path *.ckpt
+
+# for example
+#  youtube
+python main.py --test --setting_path lightning_logs/youtube_best/yot_settings.yaml --ckpt_path lightning_logs/youtube_best/checkpoints/pre-trained.ckpt
+# amazon
+python main.py --setting_path lightning_logs/amazon_best/ama_settings.yaml --ckpt_path lightning_logs/amazon_best/checkpoints/pre-trained.ckpt
+# twitter
+python main.py --setting_path lightning_logs/twitter_best/tiw_settings.yaml --ckpt_path lightning_logs/twitter_best/checkpoints/pre-trained.ckpt
 ```
+The result will be stored in the directory: `./lightning_logs/version_0`
 
-The result(auc,aupr) will be stored in the directory: `./lightning_logs/version_0`
-
-If you want to load your trained model to predict the test data set, you only need to change `--ckpt_path`like this:
+If you want to load your trained model to predict the test data set, you only need to change `--setting_path` and `--ckpt_path`like this:
 
 ```
-python main.py --test --ckpt_path yourpath.ckpt
+python main.py --test --setting_path yourpath.yaml --ckpt_path yourpath.ckpt
 ```
 
 PS: Keep the configuration file unchanged during training and testing.
+
+### Sime Node Classification Task
+
+training and testing are similar to the Link Prediction Task.
+
+**train:**
+
+```
+#  AIFB
+python main.py --setting_path lightning_logs/aifb_best/aifb_settings.yaml
+
+# PubMed
+python main.py --setting_path lightning_logs/pub_best/pub_settings.yaml
+```
+
+**test:**
+```
+#  AIFB
+python main.py --test --setting_path lightning_logs/aifb_best/aifb_settings.yaml --ckpt_path lightning_logs/aifb_best/checkpoints/pre-trained.ckpt
+
+# PubMed
+python main.py --test --setting_path lightning_logs/pub_best/pub_settings.yaml --ckpt_path lightning_logs/pub_best/checkpoints/pre-trained.ckpt
+```
