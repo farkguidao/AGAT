@@ -1,12 +1,9 @@
 import os
 
 import torch
-
 from dataloader.link_pre_dataloader import LinkPredictionDataloader
-from dataloader.link_rank_dataloader import LinkRankDataloader
 from dataloader.node_cla_dataloader import NodeClassificationDataloader
 from models.LinkPreTask import LinkPredictionTask
-from models.LinkRankTask import LinkRankTask
 from models.NodeCLTask import NodeClassificationTask
 import pytorch_lightning as pl
 import yaml
@@ -14,7 +11,6 @@ import argparse
 
 TASK = {
     'link_pre':(LinkPredictionDataloader,LinkPredictionTask),
-    'link_rank':(LinkRankDataloader,LinkRankTask),
     'simi_node_CL':(NodeClassificationDataloader,NodeClassificationTask)
 }
 
@@ -32,11 +28,6 @@ def get_trainer_model_dataloader_from_yaml(yaml_path):
 
 
 def train(parser):
-    # dl=NSDataloader(batch_size=512*32)
-    # model = M2GCNModel(N=dl.num_nodes,adj_list=dl.adj_list,lam=0.5)
-    # checkpoint_callback = pl.callbacks.ModelCheckpoint(monitor='auc',mode='max')
-    # trainer = pl.Trainer(max_epochs=10,callbacks=[checkpoint_callback],gpus=1,reload_dataloaders_every_n_epochs=1)
-    # trainer.fit(model,dl)
     args = parser.parse_args()
     setting_path = args.setting_path
     trainer,model,dl = get_trainer_model_dataloader_from_yaml(setting_path)
@@ -59,7 +50,7 @@ def test(parser):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--setting_path',type=str,default='settings/wn_settings.yaml')
+    parser.add_argument('--setting_path',type=str,help='model setting file path')
     parser.add_argument("--test", action='store_true', help='test or train')
     temp_args, _ = parser.parse_known_args()
     if temp_args.test:

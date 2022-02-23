@@ -11,7 +11,7 @@ from models.AGAT import AGAT
 
 
 class LinkPredictionTask(pl.LightningModule):
-    def __init__(self,edge_index,edge_type,feature,N,aggregator,use_feature,feature_dim,d_model,type_num, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
+    def __init__(self,edge_index,edge_type,feature,N,aggregator,use_feature,feature_dim,d_model,type_num,lambed, L,use_gradient_checkpointing,neg_num,dropout,lr,wd):
         super(LinkPredictionTask, self).__init__()
         # 工程类组件
         self.save_hyperparameters(ignore=['edge_index','edge_type','feature','N','degree'])
@@ -68,9 +68,10 @@ class LinkPredictionTask(pl.LightningModule):
         if self.hparams.aggregator=='agat':
             logits = (em[:, source] * self.w[target].unsqueeze(0)).sum(-1).T # bs,t
             l2 = self.loss2(logits,pos_edge_type-1)
+            loss = loss + self.hparams.lambed * l2
             self.log('loss2', l2, prog_bar=True)
-            self.log('loss_all', l1+l2, prog_bar=True)
-            loss = loss+l2
+            self.log('loss_all', loss, prog_bar=True)
+
         return loss
 
     def validation_step(self, batch,*args, **kwargs) -> Optional[STEP_OUTPUT]:
