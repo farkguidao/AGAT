@@ -77,9 +77,9 @@ python main.py --test --setting_path *.yaml --ckpt_path *.ckpt
 #  youtube
 python main.py --test --setting_path lightning_logs/youtube_best/yot_settings.yaml --ckpt_path lightning_logs/youtube_best/checkpoints/pre-trained.ckpt
 # amazon
-python main.py --setting_path lightning_logs/amazon_best/ama_settings.yaml --ckpt_path lightning_logs/amazon_best/checkpoints/pre-trained.ckpt
+python main.py --test --setting_path lightning_logs/amazon_best/ama_settings.yaml --ckpt_path lightning_logs/amazon_best/checkpoints/pre-trained.ckpt
 # twitter
-python main.py --setting_path lightning_logs/twitter_best/tiw_settings.yaml --ckpt_path lightning_logs/twitter_best/checkpoints/pre-trained.ckpt
+python main.py --test --setting_path lightning_logs/twitter_best/tiw_settings.yaml --ckpt_path lightning_logs/twitter_best/checkpoints/pre-trained.ckpt
 ```
 The result will be stored in the directory: `./lightning_logs/version_0`
 
