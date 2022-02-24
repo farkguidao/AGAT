@@ -31,8 +31,8 @@ sh do_unzip.sh
 
 - **/data:** Store the dataset and prepared data.
 - **/dataloader:** Codes of the dataloader.
-- **/models:** Codes of the AGAT model , link-prediction task and simi-node-classification task .
-- **/utils:** Codes for data prepareing and some other utils.
+- **/models:** Codes of the AGAT model , link-prediction task and semi-supervised classification task .
+- **/utils:** Codes for data preparing and some other utils.
 - **/lightning_logs:** Store the trained model parameters, setting files, checkpoints, logs and results.
 - **main.py:** The main entrance of running.
 
